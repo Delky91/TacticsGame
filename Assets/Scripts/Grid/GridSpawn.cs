@@ -16,7 +16,14 @@ public class GridSpawn : MonoBehaviour
     [Header("Tile Materials")] [SerializeField]
     private Material[] tileMaterials;
 
-    private void Start()
+    // TODO to implement special tiles to spawn before combat start.
+
+    // Special tiles for player and enemy
+    // [SerializeField] private Material playerSpawnMaterial;
+    // [SerializeField] private Material enemySpawnMaterial;
+
+
+    private void Awake()
     {
         GenerateGrid();
     }
