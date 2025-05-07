@@ -16,6 +16,9 @@ public class GridSpawn : MonoBehaviour
     [Header("Tile Materials")] [SerializeField]
     private Material[] tileMaterials;
 
+    private Tile[,] _tiles; // references to all tiles
+
+
     // TODO to implement special tiles to spawn before combat start.
 
     // Special tiles for player and enemy
@@ -25,6 +28,7 @@ public class GridSpawn : MonoBehaviour
 
     private void Awake()
     {
+        _tiles = new Tile[Width, Height];
         GenerateGrid();
     }
 
@@ -37,14 +41,22 @@ public class GridSpawn : MonoBehaviour
             Vector3 position = new(x * tileSpacing, 0, z * tileSpacing);
 
             // Instantiate the tile prefab at the calculated position.
-            var tile = Instantiate(tilePrefab, position, Quaternion.identity, transform);
-
+            var go = Instantiate(tilePrefab, position, Quaternion.identity, transform);
+            var tile = go.GetComponent<Tile>();
 
             // Assign a material from the array to the tile in a checkbox pattern. 
-            if (!tile.TryGetComponent<Renderer>(out var tileRenderer)) return;
+            if (!go.TryGetComponent<Renderer>(out var tileRenderer)) return;
 
             var materialIndex = (x + z) % tileMaterials.Length;
             tileRenderer.material = tileMaterials[materialIndex];
+
+            _tiles[x, z] = tile;
         }
+    }
+
+    public Tile GetTileAt(Vector2Int pos)
+    {
+        if (pos.x < 0 || pos.y < 0 || pos.x >= Width || pos.y >= Height) return null;
+        return _tiles[pos.x, pos.y];
     }
 }

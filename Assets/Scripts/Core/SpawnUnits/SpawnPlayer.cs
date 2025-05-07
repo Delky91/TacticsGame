@@ -3,24 +3,34 @@ using UnityEngine;
 
 public class SpawnPlayer : MonoBehaviour
 {
-    [SerializeField] private GameObject player;
-    [SerializeField] private List<Vector3> spawnPositions = new();
+    [SerializeField] private GameObject unitPrefab;
+
+    [Tooltip("Coordinates where the player can Spawn")]
+    public List<Vector2Int> spawnPositions = new();
+
+    private readonly List<Unit> _units = new();
+
+    private GridSpawn _grid;
 
     private void Start()
     {
-        if (!ValidateSpawnPositions()) return;
-        SpawnPlayerAtRandomPosition();
+        _grid = FindFirstObjectByType<GridSpawn>();
+        if (_grid == null) return;
+
+        foreach (var pos in spawnPositions) SpawnPlayerAt(pos);
     }
 
-    private bool ValidateSpawnPositions()
+    private void SpawnPlayerAt(Vector2Int pos)
     {
-        return spawnPositions != null && spawnPositions.Count is > 0 and <= 3;
-    }
+        var tile = _grid.GetTileAt(pos);
+        if (tile == null || tile.OccupyingUnit != null) return;
 
-    private void SpawnPlayerAtRandomPosition()
-    {
-        var randomIndex = Random.Range(0, spawnPositions.Count);
-        var spawnPosition = spawnPositions[randomIndex];
-        Instantiate(player, spawnPosition, Quaternion.identity);
+        var spawnWorld = tile.transform.position + Vector3.up * 0.4f;
+        var unitObject = Instantiate(unitPrefab, spawnWorld, Quaternion.identity);
+        var unit = unitObject.GetComponent<Unit>();
+
+        unit.CurrentTile = tile;
+        tile.SetUnit(unit);
+        _units.Add(unit);
     }
 }

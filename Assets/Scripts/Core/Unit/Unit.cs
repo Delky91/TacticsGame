@@ -1,13 +1,22 @@
 ﻿using UnityEngine;
+using UnityEngine.EventSystems;
 
-public class Unit : MonoBehaviour
+public class Unit : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler
 {
     [SerializeField] private GameObject unitModel;
+    private readonly Color _selectedColor = Color.cadetBlue;
+    private Color _defaultColor;
+    private Renderer _renderer;
+
+    public Tile CurrentTile { get; set; }
 
     private void Awake()
     {
         if (unitModel == null) return;
+        _renderer = unitModel.GetComponent<Renderer>();
+        if (_renderer == null) return;
         unitModel.transform.position = transform.position;
+        _defaultColor = _renderer.material.color;
     }
 
     public Vector3 GetUnitWorldPosition()
@@ -32,4 +41,21 @@ public class Unit : MonoBehaviour
     {
         unitModel.SetActive(true);
     }
+
+    #region MouseEvent
+
+    // here all that happen when u click the tile.
+    public void OnPointerDown(PointerEventData eventData)
+    {
+    }
+
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+    }
+
+    public void OnPointerExit(PointerEventData eventData)
+    {
+    }
+
+    #endregion
 }
