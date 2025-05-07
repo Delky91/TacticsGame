@@ -741,7 +741,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   unitPrefab: {fileID: 148396888225415786, guid: f79767566d9d58840b6023b014aecb1f, type: 3}
   spawnPositions:
-  - {x: 1, y: 0, z: 1}
+  - {x: 1, y: 1}
 --- !u!1 &1078999174
 GameObject:
   m_ObjectHideFlags: 0

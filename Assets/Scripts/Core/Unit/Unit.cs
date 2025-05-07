@@ -44,9 +44,13 @@ public class Unit : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IP
 
     #region MouseEvent
 
-    // here all that happen when u click the tile.
+    // here all that happen when u click the unit.
     public void OnPointerDown(PointerEventData eventData)
     {
+        /*
+         * todo lo que pase al hacer click izq en una unidad.
+         */
+        if (eventData.button == PointerEventData.InputButton.Left) print("Unit clicked");
     }
 
     public void OnPointerEnter(PointerEventData eventData)
