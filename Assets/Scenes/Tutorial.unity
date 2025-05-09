@@ -603,6 +603,56 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   text: {fileID: 309234758}
   button: {fileID: 1078999176}
+--- !u!1 &704597840
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 704597842}
+  - component: {fileID: 704597841}
+  m_Layer: 0
+  m_Name: HighlightPoolManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &704597841
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 704597840}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3b40ea48b94b3394baf7214e397109de, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  highlightPrefab: {fileID: 2862453947248733062, guid: de757b079be382047a64298c21243046, type: 3}
+  poolSize: 75
+  poolParent: {fileID: 704597842}
+  highlightMaterial: {fileID: 2100000, guid: c079ff6bb7358f244a00f9631c4671b8, type: 2}
+  hoverHighlightMaterial: {fileID: 2100000, guid: a859dd48a28510d44a99c3c737b3d39e, type: 2}
+  invalidHighlightMaterial: {fileID: 2100000, guid: b5363ee2f529081438204e906be37bd0, type: 2}
+--- !u!4 &704597842
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 704597840}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.07061, y: 0.92545, z: -0.49841}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &899752799
 GameObject:
   m_ObjectHideFlags: 0
@@ -1194,3 +1244,4 @@ SceneRoots:
   - {fileID: 471850536}
   - {fileID: 1054294242}
   - {fileID: 899752802}
+  - {fileID: 704597842}

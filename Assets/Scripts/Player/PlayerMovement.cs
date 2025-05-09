@@ -28,7 +28,7 @@ public class PlayerMovement : MonoBehaviour
     private int _currentMovementPoints;
     private GridSpawn _gridSpawn;
 
-// Indicador de si la unidad está en movimiento
+// Indicador de sí la unidad está en movimiento
     private bool _isMoving;
     private bool _isSelected;
     private int _maxMovementPoints;
