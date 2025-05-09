@@ -21,7 +21,7 @@ public class EndTurnPanelUI : MonoBehaviour
 
     private void OnDestroy()
     {
-        if (TurnSystem.Instance == null) return;
+        if (!TurnSystem.Instance) return;
 
         TurnSystem.Instance.OnPlayerTurnStarted -= UpdateUI;
         TurnSystem.Instance.OnEnemyTurnStarted -= UpdateUI;
