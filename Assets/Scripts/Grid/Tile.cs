@@ -1,29 +1,14 @@
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-/// <summary>
-///     Represents a single tile in the game grid system, managing unit placement and position information.
-///     This component handles the occupation state and provides methods to manipulate units on the tile.
-/// </summary>
 public class Tile : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler
 {
-    // Evento para cuando se hace click en la casilla
     public delegate void TileClickedHandler(Tile tile);
 
-    private const float ColorLerpSpeed = 10f;
-
     [SerializeField] private bool isObstacle;
-    [SerializeField] private int movementCost = 1; // Por defecto, cuesta 1 PM atravesar
+    [SerializeField] private int movementCost = 1;
 
-
-    // Color on hover:
-    private readonly Color _hoverColor = Color.softYellow;
-
-    // Color for movement target:
-    private readonly Color _moveTargetColor = new(0.0f, 0.8f, 0.0f, 0.6f); // Verde semitransparente
-    private Color _defaultColor;
     private bool _isMoveTarget;
-    private Renderer _renderer;
     private Transform _transform;
 
     public bool IsObstacle => isObstacle;
@@ -32,27 +17,21 @@ public class Tile : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IP
     public Unit OccupyingUnit { get; private set; }
     public bool IsOccupied => OccupyingUnit != null;
 
-
     private void Start()
     {
-        _renderer = GetComponent<Renderer>();
         _transform = GetComponent<Transform>();
-        if (_renderer == null || _transform == null) return;
-
-        _defaultColor = _renderer.material.color;
     }
 
     public static event TileClickedHandler OnTileClicked;
 
-    public Vector3 GetTileWorldPosition(Tile tile)
+    public Vector3 GetTileWorldPosition()
     {
-        return tile == null ? Vector3.zero : tile.transform.position;
+        return transform.position;
     }
 
     /// <summary>
     ///     Set a unit to the tile
     /// </summary>
-    /// <param name="unit"></param>
     public void SetUnit(Unit unit)
     {
         OccupyingUnit = unit;
@@ -61,7 +40,6 @@ public class Tile : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IP
     /// <summary>
     ///     Return the unit set to the Tile
     /// </summary>
-    /// <returns>Unit</returns>
     public Unit GetUnit()
     {
         return OccupyingUnit;
@@ -72,24 +50,22 @@ public class Tile : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IP
     /// </summary>
     public void HighlightAsMoveTarget(bool highlight)
     {
-        if (!_renderer) return;
-
         _isMoveTarget = highlight;
 
-        _renderer.material.color = highlight ? _moveTargetColor : _defaultColor;
+        if (highlight)
+            HighlightPoolManager.Instance.HighlightTile(this, HighlightPoolManager.HighlightType.Movement);
+        else
+            HighlightPoolManager.Instance.ReturnToPool(this);
     }
 
     public void SetAsObstacle(bool isObstacleInRange)
     {
         isObstacle = isObstacleInRange;
-
-        // Opcional: cambiar la apariencia visual si es un obstáculo
-        if (_renderer)
-            // Un color oscuro para representar obstáculos
-            _renderer.material.color = isObstacleInRange ? new Color(0.2f, 0.2f, 0.2f) : _defaultColor;
     }
 
-// Método para establecer el costo de movimiento en tiempo de ejecución
+    /// <summary>
+    ///     Establece el costo de movimiento
+    /// </summary>
     public void SetMovementCost(int cost)
     {
         movementCost = Mathf.Max(1, cost); // Asegurarse de que nunca sea menor que 1
@@ -104,7 +80,6 @@ public class Tile : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IP
             OccupyingUnit = null;
     }
 
-
     #region MouseEvent
 
     // here all that happen when u click the tile.
@@ -113,33 +88,32 @@ public class Tile : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IP
         if (eventData.button == PointerEventData.InputButton.Left)
         {
             if (IsOccupied)
-            {
                 // Sí hay una unidad en la casilla, seleccionarla
                 OccupyingUnit.SelectUnit();
-            }
             else
-            {
                 // Si la casilla está vacía, notificar que se ha hecho click en ella
-                print("llamado a GetTileWorldPosition" + GetTileWorldPosition(GetComponent<Tile>()));
                 OnTileClicked?.Invoke(this);
-            }
         }
     }
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        if (IsOccupied || _renderer == null || _isMoveTarget) return;
-        _renderer.material.color = _hoverColor;
+        if (IsOccupied || _isMoveTarget) return;
+
+        // Usar el highlight de hover
+        HighlightPoolManager.Instance.HighlightTile(this, HighlightPoolManager.HighlightType.Hover);
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        if (IsOccupied || _renderer == null) return;
+        if (IsOccupied) return;
 
         if (_isMoveTarget)
-            _renderer.material.color = _moveTargetColor;
+            // Si es un tile de movimiento, mantener el highlight de movimiento
+            HighlightPoolManager.Instance.HighlightTile(this, HighlightPoolManager.HighlightType.Movement);
         else
-            _renderer.material.color = _defaultColor;
+            // Si no, quitar el highlight de hover
+            HighlightPoolManager.Instance.ReturnToPool(this);
     }
 
     #endregion

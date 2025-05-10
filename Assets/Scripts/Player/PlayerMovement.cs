@@ -1,6 +1,5 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
@@ -59,12 +58,11 @@ public class PlayerMovement : MonoBehaviour
         _currentMovementPoints = _maxMovementPoints;
 
         // if the unit it's in the grid initialized as _previousTile
-        if (_unit.CurrentTile != null)
-        {
-            _previousTile = _unit.CurrentTile;
-            _previousTile.SetOccupied(true);
-            _previousTile.SetUnit(_unit);
-        }
+        if (!_unit.CurrentTile) return;
+
+        _previousTile = _unit.CurrentTile;
+        _previousTile.SetOccupied(true);
+        _previousTile.SetUnit(_unit);
     }
 
     private void OnDestroy()
@@ -97,7 +95,7 @@ public class PlayerMovement : MonoBehaviour
     {
         ClearHighlightedTiles();
 
-        if (_unit.CurrentTile == null) return;
+        if (!_unit.CurrentTile) return;
 
         // Usar PathFinder para encontrar todos los tiles accesibles
         _pathsToTiles = PathFinder.FindAllAccessibleTiles(_unit.CurrentTile, _currentMovementPoints, _gridSpawn);
@@ -109,29 +107,6 @@ public class PlayerMovement : MonoBehaviour
             _highlightedTiles.Add(tile);
         }
     }
-
-
-// Método auxiliar para obtener casillas vecinas en las cuatro direcciones ortogonales
-    private List<Tile> GetNeighborTiles(Tile tile)
-    {
-        var position = tile.transform.position;
-        var x = Mathf.RoundToInt(position.x);
-        var z = Mathf.RoundToInt(position.z);
-
-        // Direcciones: derecha, izquierda, arriba, abajo
-        Vector2Int[] directions =
-        {
-            new(1, 0),
-            new(-1, 0),
-            new(0, 1),
-            new(0, -1)
-        };
-
-        return directions.Select(dir => new Vector2Int(x + dir.x, z + dir.y))
-            .Select(neighborPos => _gridSpawn.GetTileAt(neighborPos)).Where(neighborTile => neighborTile is not null)
-            .ToList();
-    }
-
 
     private void ClearHighlightedTiles()
     {
@@ -181,7 +156,7 @@ public class PlayerMovement : MonoBehaviour
         _isMoving = true;
 
         // clear the starting tile
-        if (_previousTile != null)
+        if (_previousTile)
         {
             _previousTile.SetOccupied(false);
             _previousTile.SetUnit(null);
@@ -222,7 +197,7 @@ public class PlayerMovement : MonoBehaviour
         }
 
         // Make the target tile as Occupied
-        var finalTile = path[path.Count - 1];
+        var finalTile = path[^1];
         _unit.CurrentTile = finalTile;
         finalTile.SetUnit(_unit);
         finalTile.SetOccupied(true);
@@ -250,29 +225,6 @@ public class PlayerMovement : MonoBehaviour
         _currentMovementPoints = _maxMovementPoints;
         if (_isSelected) HighlightAvailableTiles();
     }
-
-    #region A* calculate distance
-
-    // Clase para almacenar información del nodo para A*
-    private class PathNode
-    {
-        public readonly int GCost; // Costo desde el inicio
-        public readonly int HCost; // Costo estimado hasta el destino (heurística)
-        public PathNode Parent; // Para reconstruir el camino
-        public Tile Tile;
-
-        public PathNode(Tile tile, int gCost, int hCost, PathNode parent)
-        {
-            Tile = tile;
-            GCost = gCost;
-            HCost = hCost;
-            Parent = parent;
-        }
-
-        public int FCost => GCost + HCost; // Costo total
-    }
-
-    #endregion
 
     #region Event (TODO: pass this to a utilities file)
 

@@ -29,19 +29,19 @@ public class HighlightPoolManager : MonoBehaviour
 
     private Queue<GameObject> _availableHighlights;
 
-    public static HighlightPoolManager Instance { get; }
+    public static HighlightPoolManager Instance { get; private set; }
 
     private void Awake()
     {
         // Only one instance of the manager can exist
-        if (_instance && _instance != this)
+        if (Instance && Instance != this)
         {
             Destroy(gameObject);
             return;
         }
 
         // initialized vars
-        _instance = this;
+        Instance = this;
 
         _availableHighlights = new Queue<GameObject>();
         _activeHighlights = new Dictionary<Tile, GameObject>();
@@ -55,6 +55,8 @@ public class HighlightPoolManager : MonoBehaviour
 
         // initialized pool
         InitializePool();
+
+        Debug.Log("HighlightPoolManager initialized. Pool size: " + _availableHighlights.Count);
     }
 
     private void InitializePool()
@@ -73,9 +75,11 @@ public class HighlightPoolManager : MonoBehaviour
         if (_activeHighlights.TryGetValue(tile, out var existingHighlight)) ReturnToPool(tile);
 
         // if run out of highlight planes, create a new one
-        if (_availableHighlights.Count > 0) return;
-        var newHighlight = Instantiate(highlightPrefab, poolParent);
-        _availableHighlights.Enqueue(newHighlight);
+        if (_availableHighlights.Count == 0)
+        {
+            var newHighlight = Instantiate(highlightPrefab, poolParent);
+            _availableHighlights.Enqueue(newHighlight);
+        }
 
         // Get a plane from the pool
         var highlight = _availableHighlights.Dequeue();
@@ -107,6 +111,8 @@ public class HighlightPoolManager : MonoBehaviour
     /// <param name="tile"></param>
     public void ReturnToPool(Tile tile)
     {
+        if (!tile) return;
+
         if (_activeHighlights.TryGetValue(tile, out var highlight))
         {
             highlight.SetActive(false);
