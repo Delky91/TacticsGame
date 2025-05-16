@@ -4,30 +4,18 @@ using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
-    /*
-     * Pasos del sistema de movimiento del player:
-     * 1) saber cuantos PM tiene el player por default (crear scriptable Object con estadísticas). OK
-     * 2) crear variable para mantener los PM que tiene actualmente. (por buff y debuff). OK
-     * 3) Pm máximos actuales para mantener después del final de turno. OK
-     * 4) método para gastar PM. OK
-     * 5) método para que al finalizar el turno los pm vuelvan a su valor maximo actual.
-     * 6) Eventos para el clic tanto en selección como para mover a un tile.
-     * 7) Generar una utilities para el highlight de los tiles a los cuales es permitido moverse.
-     */
-    // TODO usar systema de object pool para el highlight en vez de cambiar el material, lo mismo con el hover del tile
-
     // get the base stats.
     [SerializeField] private BaseStats baseStats;
     [SerializeField] private Vector3 offsetY = new(0, 0.4f, 0);
 
-// Velocidad de movimiento entre tiles
+    // Velocidad de movimiento entre tiles
     [SerializeField] private float movementSpeed = 5f;
 
     private readonly List<Tile> _highlightedTiles = new();
     private int _currentMovementPoints;
     private GridSpawn _gridSpawn;
 
-// Indicador de sí la unidad está en movimiento
+    // Indicador de sí la unidad está en movimiento
     private bool _isMoving;
     private bool _isSelected;
     private int _maxMovementPoints;
@@ -75,7 +63,7 @@ public class PlayerMovement : MonoBehaviour
 
     private void HandleUnitSelected(Unit selectedUnit)
     {
-        // Sí estamos seleccionando otra unidad, deseleccionamos la actual.
+        // deselect the current unit if we are selecting another.
         if (_isSelected && selectedUnit != _unit)
         {
             ClearHighlightedTiles();
@@ -83,24 +71,25 @@ public class PlayerMovement : MonoBehaviour
             return;
         }
 
-        // Sí estamos seleccionando esta unidad
         if (selectedUnit != _unit) return;
         _isSelected = true;
         HighlightAvailableTiles();
     }
 
 
-    // Método para resaltar las casillas disponibles para moverse
+    /// <summary>
+    ///     Highlight the available tiles
+    /// </summary>
     private void HighlightAvailableTiles()
     {
         ClearHighlightedTiles();
 
         if (!_unit.CurrentTile) return;
 
-        // Usar PathFinder para encontrar todos los tiles accesibles
+        // Use the PathFinder
         _pathsToTiles = PathFinder.FindAllAccessibleTiles(_unit.CurrentTile, _currentMovementPoints, _gridSpawn);
 
-        // Resaltar todos los tiles accesibles
+        // Highlight tiles
         foreach (var tile in _pathsToTiles.Keys)
         {
             tile.HighlightAsMoveTarget(true);
@@ -108,6 +97,9 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
+    /// <summary>
+    ///     Clear the highlight from the tiles.
+    /// </summary>
     private void ClearHighlightedTiles()
     {
         foreach (var tile in _highlightedTiles) tile.HighlightAsMoveTarget(false);
@@ -115,6 +107,10 @@ public class PlayerMovement : MonoBehaviour
     }
 
 
+    /// <summary>
+    ///     Mote the player to the target Tile
+    /// </summary>
+    /// <param name="targetTile"></param>
     public void MoveToTile(Tile targetTile)
     {
         if (!TurnSystem.Instance.IsPlayerTurn) return;
@@ -123,11 +119,11 @@ public class PlayerMovement : MonoBehaviour
         if (!_highlightedTiles.Contains(targetTile)) return;
         if (_isMoving) return;
 
-        // Obtener el camino al tile objetivo
+        // Get the path.
         if (!_pathsToTiles.TryGetValue(targetTile, out var path) || path.Count <= 1)
             return;
 
-        // Calcular el costo total del movimiento
+        // Get the cost of the movement.
         var totalCost = 0;
         for (var i = 1; i < path.Count; i++)
         {
@@ -137,20 +133,25 @@ public class PlayerMovement : MonoBehaviour
             totalCost += moveCost;
         }
 
-        // Verificar si tenemos suficientes PM
+        // Check if enough PM
         if (totalCost > _currentMovementPoints)
             return;
 
-        // Iniciar la corrutina de movimiento
+        // Start the Move Coroutine
         StartCoroutine(MoveAlongPath(path));
 
-        // Gastar PM
-        _currentMovementPoints -= totalCost;
+        // Use the PM
+        UsePm(totalCost);
 
-        // Limpiar el resaltado pero NO deseleccionar la unidad
+        // Clear the highlight tiles.
         ClearHighlightedTiles();
     }
 
+    /// <summary>
+    ///     Allow the movement from and handle the states.
+    /// </summary>
+    /// <param name="path"></param>
+    /// <returns></returns>
     private IEnumerator MoveAlongPath(List<Tile> path)
     {
         _isMoving = true;
@@ -211,6 +212,10 @@ public class PlayerMovement : MonoBehaviour
     }
 
 
+    /// <summary>
+    ///     Allow the use of the Unit's PM.
+    /// </summary>
+    /// <param name="pointsUsed"></param>
     public void UsePm(int pointsUsed)
     {
         if (pointsUsed < 0) return; // pointUsed only can be a positive number
@@ -220,24 +225,37 @@ public class PlayerMovement : MonoBehaviour
     }
 
 
+    /// <summary>
+    ///     Handle the restart of the PM at the beginning of the player turn.
+    /// </summary>
     private void OnTurnStart()
     {
         _currentMovementPoints = _maxMovementPoints;
         if (_isSelected) HighlightAvailableTiles();
     }
 
-    #region Event (TODO: pass this to a utilities file)
-
+    /// <summary>
+    ///     Call when the player Unit Gains PM to use ONLY this turn.
+    /// </summary>
+    /// <param name="pm"></param>
     public void GainPm(int pm)
     {
         _currentMovementPoints += pm;
     }
 
+    /// <summary>
+    ///     Get the Current PM of the Unit.
+    /// </summary>
+    /// <returns>Int with the current PM of the Unit.</returns>
     public int GetCurrentPm()
     {
         return _currentMovementPoints;
     }
 
+    /// <summary>
+    ///     Get the max Pm that the unit have.
+    /// </summary>
+    /// <returns>Int with the max PM.</returns>
     public int GetMaxPm()
     {
         return _maxMovementPoints;
@@ -248,7 +266,7 @@ public class PlayerMovement : MonoBehaviour
     /// </summary>
     /// <param name="points"></param>
     /// <param name="isAdd"></param>
-    /// <returns></returns>
+    /// <returns>Int with the next turn max PM</returns>
     public int ChangeMaxPm(int points, bool isAdd = true)
     {
         if (isAdd) _maxMovementPoints += points;
@@ -256,6 +274,4 @@ public class PlayerMovement : MonoBehaviour
 
         return _maxMovementPoints;
     }
-
-    #endregion
 }
